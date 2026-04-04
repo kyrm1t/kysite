@@ -5,7 +5,7 @@
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  color: #333;
+  color: #252525;
   position: relative;
   padding: 8rem 2rem 4rem;
 }
@@ -21,7 +21,7 @@
   font-weight: 300;
   letter-spacing: 0.2em;
   margin: 0;
-  color: #222;
+  color: #1c1c1c;
 }
 
 .App-header h1 .letter-rainbow-glitch {
@@ -162,6 +162,12 @@
     grid-template-columns: 1fr;
     gap: 1.5rem;
     max-width: 100%;
+  }
+
+  /* On mobile, show only Night 2 (first featured image) */
+  .featured-item:nth-child(2),
+  .featured-item:nth-child(3) {
+    display: none;
   }
 }
 

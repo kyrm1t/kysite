@@ -6,6 +6,8 @@ import ImageModal from './ImageModal'
 function Paintings({ onNavigateHome }) {
   // All images from the public/images folder
   const imageNames = [
+    'McFries.JPG',
+    'Friday_Night_Special.JPG',
     'night-2.JPG',
     'donuts.JPG',
     'acidum-fortuna.JPG',
