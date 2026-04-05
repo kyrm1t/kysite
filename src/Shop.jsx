@@ -89,8 +89,17 @@ const SHOP_ITEMS = [
 
 const SHOP_ITEM_QUERY = 'item'
 
+function shopPathFromLocation() {
+  const u = new URL(window.location.href)
+  const path = (u.pathname.replace(/\/+$/, '') || '/')
+  const legacyRootWithItem =
+    (path === '/' || path === '') && u.searchParams.has(SHOP_ITEM_QUERY)
+  return path === '/shop' || legacyRootWithItem
+}
+
 function readSelectedIdFromSearch() {
   if (typeof window === 'undefined') return null
+  if (!shopPathFromLocation()) return null
   const raw = new URLSearchParams(window.location.search).get(SHOP_ITEM_QUERY)
   if (raw == null || raw === '') return null
   const id = Number(raw)
@@ -100,6 +109,7 @@ function readSelectedIdFromSearch() {
 
 function pathnameSearchHashWithItem(itemId) {
   const u = new URL(window.location.href)
+  u.pathname = '/shop'
   if (itemId == null) u.searchParams.delete(SHOP_ITEM_QUERY)
   else u.searchParams.set(SHOP_ITEM_QUERY, String(itemId))
   return u.pathname + u.search + u.hash

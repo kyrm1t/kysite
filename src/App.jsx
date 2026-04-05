@@ -1,15 +1,68 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useLayoutEffect, useCallback } from 'react'
 import './App.css'
 import Home from './Home'
 import Paintings from './Paintings'
 import Shop from './Shop'
 import AnimatedHeader from './AnimatedHeader'
 
+const ROUTE_PAGES = new Set(['paintings', 'bio', 'shop', 'contact'])
+
+function pageFromPathname(pathname) {
+  const trimmed = (pathname || '').replace(/\/+$/, '') || '/'
+  if (trimmed === '/') return 'home'
+  const first = trimmed.slice(1).split('/')[0]
+  if (ROUTE_PAGES.has(first)) return first
+  return 'home'
+}
+
+function pathnameForPage(page) {
+  if (page === 'home') return '/'
+  return `/${page}`
+}
+
+function initialPageFromWindow() {
+  if (typeof window === 'undefined') return 'home'
+  const u = new URL(window.location.href)
+  if (
+    (u.pathname === '/' || u.pathname === '') &&
+    u.searchParams.has('item')
+  ) {
+    return 'shop'
+  }
+  return pageFromPathname(u.pathname)
+}
+
 function App() {
-  const [currentPage, setCurrentPage] = useState('home')
+  const [currentPage, setCurrentPage] = useState(initialPageFromWindow)
   const [shopBreadcrumb, setShopBreadcrumb] = useState(null)
   const [shopResetKey, setShopResetKey] = useState(0)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+
+  useLayoutEffect(() => {
+    const u = new URL(window.location.href)
+    if ((u.pathname === '/' || u.pathname === '') && u.searchParams.has('item')) {
+      u.pathname = '/shop'
+      window.history.replaceState(window.history.state, '', u.pathname + u.search + u.hash)
+    }
+  }, [])
+
+  const goToPage = useCallback((page) => {
+    if (page === 'shop' && currentPage === 'shop') {
+      setShopResetKey((k) => k + 1)
+      window.history.replaceState({ page: 'shop' }, '', '/shop')
+      return
+    }
+    window.history.pushState({ page }, '', pathnameForPage(page))
+    setCurrentPage(page)
+  }, [currentPage])
+
+  useEffect(() => {
+    const onPop = () => {
+      setCurrentPage(pageFromPathname(window.location.pathname))
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
 
   useEffect(() => {
     if (currentPage !== 'shop') setShopBreadcrumb(null)
@@ -44,7 +97,7 @@ function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'paintings':
-        return <Paintings onNavigateHome={() => setCurrentPage('home')} />
+        return <Paintings onNavigateHome={() => goToPage('home')} />
       case 'shop':
         return (
           <Shop
@@ -107,7 +160,7 @@ function App() {
         <div className="home-header-cluster">
           <button
             className="home-name-button"
-            onClick={() => setCurrentPage('home')}
+            onClick={() => goToPage('home')}
             aria-label="Home"
           >
             <span className="home-button-text">Kyriell Paris-Agafonov</span>
@@ -138,33 +191,28 @@ function App() {
           <button
             type="button"
             className={`nav-button ${currentPage === 'paintings' ? 'active' : ''}`}
-            onClick={() => setCurrentPage('paintings')}
+            onClick={() => goToPage('paintings')}
           >
             Paintings
           </button>
           <button
             type="button"
             className={`nav-button ${currentPage === 'bio' ? 'active' : ''}`}
-            onClick={() => setCurrentPage('bio')}
+            onClick={() => goToPage('bio')}
           >
             Bio
           </button>
           <button
             type="button"
             className={`nav-button ${currentPage === 'shop' ? 'active' : ''}`}
-            onClick={() => {
-              if (currentPage === 'shop') {
-                setShopResetKey((k) => k + 1)
-              }
-              setCurrentPage('shop')
-            }}
+            onClick={() => goToPage('shop')}
           >
             Shop
           </button>
           <button
             type="button"
             className={`nav-button ${currentPage === 'contact' ? 'active' : ''}`}
-            onClick={() => setCurrentPage('contact')}
+            onClick={() => goToPage('contact')}
           >
             Contact
           </button>
@@ -236,7 +284,7 @@ function App() {
                   type="button"
                   className={`nav-button mobile-menu-link ${currentPage === 'paintings' ? 'active' : ''}`}
                   onClick={() => {
-                    setCurrentPage('paintings')
+                    goToPage('paintings')
                     closeMobileNav()
                   }}
                 >
@@ -246,7 +294,7 @@ function App() {
                   type="button"
                   className={`nav-button mobile-menu-link ${currentPage === 'bio' ? 'active' : ''}`}
                   onClick={() => {
-                    setCurrentPage('bio')
+                    goToPage('bio')
                     closeMobileNav()
                   }}
                 >
@@ -256,10 +304,7 @@ function App() {
                   type="button"
                   className={`nav-button mobile-menu-link ${currentPage === 'shop' ? 'active' : ''}`}
                   onClick={() => {
-                    if (currentPage === 'shop') {
-                      setShopResetKey((k) => k + 1)
-                    }
-                    setCurrentPage('shop')
+                    goToPage('shop')
                     closeMobileNav()
                   }}
                 >
@@ -269,7 +314,7 @@ function App() {
                   type="button"
                   className={`nav-button mobile-menu-link ${currentPage === 'contact' ? 'active' : ''}`}
                   onClick={() => {
-                    setCurrentPage('contact')
+                    goToPage('contact')
                     closeMobileNav()
                   }}
                 >
