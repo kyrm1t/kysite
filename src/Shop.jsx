@@ -87,6 +87,24 @@ const SHOP_ITEMS = [
   },
 ]
 
+const SHOP_ITEM_QUERY = 'item'
+
+function readSelectedIdFromSearch() {
+  if (typeof window === 'undefined') return null
+  const raw = new URLSearchParams(window.location.search).get(SHOP_ITEM_QUERY)
+  if (raw == null || raw === '') return null
+  const id = Number(raw)
+  if (!Number.isFinite(id)) return null
+  return SHOP_ITEMS.some((i) => i.id === id) ? id : null
+}
+
+function pathnameSearchHashWithItem(itemId) {
+  const u = new URL(window.location.href)
+  if (itemId == null) u.searchParams.delete(SHOP_ITEM_QUERY)
+  else u.searchParams.set(SHOP_ITEM_QUERY, String(itemId))
+  return u.pathname + u.search + u.hash
+}
+
 function isStripePaymentLink(link) {
   if (!link || typeof link !== 'string') return false
   return (
@@ -234,15 +252,38 @@ function ShopDetail({ item }) {
 }
 
 function Shop({ onDetailNavChange, shopResetKey = 0 }) {
-  const [selectedId, setSelectedId] = React.useState(null)
+  const [selectedId, setSelectedId] = React.useState(() => readSelectedIdFromSearch())
   const selected = SHOP_ITEMS.find((i) => i.id === selectedId)
 
-  const backToList = React.useCallback(() => setSelectedId(null), [])
+  const syncSelectionFromUrl = React.useCallback(() => {
+    setSelectedId(readSelectedIdFromSearch())
+  }, [])
+
+  React.useEffect(() => {
+    window.addEventListener('popstate', syncSelectionFromUrl)
+    return () => window.removeEventListener('popstate', syncSelectionFromUrl)
+  }, [syncSelectionFromUrl])
+
+  const openItem = React.useCallback((id) => {
+    window.history.pushState({ shopItem: id }, '', pathnameSearchHashWithItem(id))
+    setSelectedId(id)
+  }, [])
+
+  const clearItemFromUrl = React.useCallback(() => {
+    const path = pathnameSearchHashWithItem(null)
+    window.history.replaceState(window.history.state, '', path)
+  }, [])
+
+  const backToList = React.useCallback(() => {
+    clearItemFromUrl()
+    setSelectedId(null)
+  }, [clearItemFromUrl])
 
   React.useEffect(() => {
     if (!shopResetKey) return
+    clearItemFromUrl()
     setSelectedId(null)
-  }, [shopResetKey])
+  }, [shopResetKey, clearItemFromUrl])
 
   React.useEffect(() => {
     if (!onDetailNavChange) return
@@ -269,7 +310,7 @@ function Shop({ onDetailNavChange, shopResetKey = 0 }) {
               key={item.id}
               type="button"
               className="shop-tile"
-              onClick={() => setSelectedId(item.id)}
+              onClick={() => openItem(item.id)}
               aria-labelledby={`shop-tile-title-${item.id}`}
             >
               <div className="shop-tile-image">
