@@ -3,6 +3,16 @@ import './Paintings.css'
 import AnimatedHeader from './AnimatedHeader'
 import ImageModal from './ImageModal'
 
+/** URL path to a file under public/images (encoded for special characters in filenames). */
+function paintingImageUrl(fileName) {
+  return `/images/${encodeURIComponent(fileName)}`
+}
+
+/** Smaller grid asset; run `npm run thumbs` to generate public/images/thumbs/. */
+function paintingThumbUrl(fileName) {
+  return `/images/thumbs/${encodeURIComponent(fileName)}`
+}
+
 function Paintings({ onNavigateHome }) {
   // All images from the public/images folder
   const imageNames = [
@@ -174,13 +184,19 @@ function Paintings({ onNavigateHome }) {
             <div 
               key={index} 
               className="gallery-item"
-              onClick={() => setSelectedImage(`/images/${imageName}`)}
+              onClick={() => setSelectedImage(paintingImageUrl(imageName))}
             >
               <img 
-                src={`/images/${imageName}`} 
+                src={paintingThumbUrl(imageName)}
                 alt={`Artwork ${index + 1}`}
                 loading="lazy"
                 onLoad={handleImageLoad}
+                onError={(e) => {
+                  const img = e.currentTarget
+                  if (img.dataset.fallbackToFull === '1') return
+                  img.dataset.fallbackToFull = '1'
+                  img.src = paintingImageUrl(imageName)
+                }}
               />
             </div>
           ))
