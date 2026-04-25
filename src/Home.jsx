@@ -5,7 +5,7 @@ import ImageModal from './ImageModal'
 function Home() {
   // Featured images to show on landing page (first few images)
   const featuredImages = [
-    'night-2.JPG',
+    'channeling_love.JPG',
     'acidum-fortuna.JPG',
     'self-portrait.JPG',
   ]

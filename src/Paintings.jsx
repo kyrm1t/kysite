@@ -16,6 +16,10 @@ function paintingThumbUrl(fileName) {
 function Paintings({ onNavigateHome }) {
   // All images from the public/images folder
   const imageNames = [
+    'channeling_love.JPG',
+    'by_the_creek.JPG',
+    'morning_shadow.JPG',
+    'Street_light.JPG',
     'McFries.JPG',
     'Friday_Night_Special.JPG',
     'night-2.JPG',
