@@ -56,6 +56,15 @@
   display: block;
 }
 
+/* Square listing tile: full artwork visible, not cropped like 4:5 cover */
+.shop-tile-image--square {
+  aspect-ratio: 1 / 1;
+}
+
+.shop-tile-image--square img {
+  object-fit: contain;
+}
+
 .shop-tile-caption {
   display: flex;
   flex-direction: column;

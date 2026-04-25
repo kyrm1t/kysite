@@ -6,6 +6,7 @@ import ImageModal from './ImageModal'
 // Stripe Payment Links: create products in Stripe Dashboard, then create a Payment Link
 // for each product and paste the link below. Format: https://buy.stripe.com/xxxxx
 // Optional: medium, dimensions, year, description (use \n\n for paragraph breaks), soldOut: true
+// Optional: tileFrame: 'square' — list tile uses 1:1 frame + object-fit contain (good for square pieces)
 function itemGallery(item) {
   if (Array.isArray(item.images) && item.images.length > 0) return item.images
   if (item.image) return [item.image]
@@ -18,6 +19,18 @@ function itemThumbnail(item) {
 }
 
 const SHOP_ITEMS = [
+  {
+    id: 8,
+    title: 'Morning Shadow',
+    image: '/images/morning_shadow.JPG',
+    price: 40000, // $400.00 — keep in sync with Stripe Payment Link
+    paymentLink: 'https://buy.stripe.com/4gM28jeOP7pA6wgdPQ5AQ06',
+    medium: 'Oil on panel',
+    dimensions: '8 × 8 in',
+    description:
+      'Painted plein air on site in Ten Sleep, Wyoming. Click the image to view larger.',
+    tileFrame: 'square',
+  },
   {
     id: 6,
     title: 'McFries',
@@ -323,7 +336,13 @@ function Shop({ onDetailNavChange, shopResetKey = 0 }) {
               onClick={() => openItem(item.id)}
               aria-labelledby={`shop-tile-title-${item.id}`}
             >
-              <div className="shop-tile-image">
+              <div
+                className={
+                  item.tileFrame === 'square'
+                    ? 'shop-tile-image shop-tile-image--square'
+                    : 'shop-tile-image'
+                }
+              >
                 <img src={itemThumbnail(item)} alt="" loading="lazy" />
               </div>
               <div className="shop-tile-caption">
