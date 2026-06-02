@@ -12,7 +12,7 @@ function Home() {
 
   const [animatedLetters, setAnimatedLetters] = useState([])
   const [selectedImage, setSelectedImage] = useState(null)
-  const name = 'Kyriell Paris-Agafonov'
+  const name = 'Kyriell'
   const letters = name.split('')
 
   useEffect(() => {
