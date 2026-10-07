@@ -20,6 +20,22 @@ function itemThumbnail(item) {
 
 const SHOP_ITEMS = [
   {
+    id: 10,
+    title: 'Ancestral Light',
+    image: '/images/Ancestral_light.JPG',
+    soldOut: true,
+    price: 0,
+    description: 'This work has sold.',
+  },
+  {
+    id: 9,
+    title: 'Channeling Love',
+    image: '/images/channeling_love.JPG',
+    soldOut: true,
+    price: 0,
+    description: 'This work has sold.',
+  },
+  {
     id: 8,
     title: 'Morning Shadow',
     image: '/images/morning_shadow.JPG',
