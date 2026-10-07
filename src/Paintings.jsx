@@ -13,9 +13,15 @@ function paintingThumbUrl(fileName) {
   return `/images/thumbs/${encodeURIComponent(fileName)}`
 }
 
-function Paintings({ onNavigateHome }) {
+const PAGE_COUNT = 2
+
+function Paintings({ page = 1, onPageChange }) {
   // All images from the public/images folder
   const imageNames = [
+    'Coronary_bypass.JPG',
+    'Ancestral_light.JPG',
+    'springs_shadow.JPG',
+    'waiting_to_fall.JPG',
     'channeling_love.JPG',
     'by_the_creek.JPG',
     'morning_shadow.JPG',
@@ -37,28 +43,28 @@ function Paintings({ onNavigateHome }) {
     'studying-nyc.JPG',
     '20230903_140618~2.JPG',
     '20230903_140712.JPG',
-    'Evening Sun, Kyriell Paris-Agafonov, Oil on Canvas Board, 10x8, $350.JPG',
+    'Evening Sun, Kyriell, Oil on Canvas Board, 10x8, $350.JPG',
     'night-talk.JPG',
     'chick-big.JPG',
-    'Fade Fast, Kyriell Paris-Agafonov, Oil on Woodboard, 12x9, $500.JPG',
-    'Magpie & Peacock, Kyriell Paris-Agafonov, Mixed Media on Woodboard, 12x18, $700.jpg',
-    'Reclaim, Kyriell Paris-Agafonov, Oil on Woodboard, 6x6, $200.JPG',
-    'Still Burning, Kyriell Paris-Agafonov, Mixed Media on Woodboard, 22x34, $2500.JPG',
-    'Xander, Kyriell Paris-Agafonov, Mixed Media on Woodboard, 10x10, $400.JPG',
-    'Egg, Kyriell Paris-Agafonov, Mixed Media on Woodboard, 10x10, $400.JPG',
-    'Edgar, Kyriell Paris-Agafonov, Mixed Media on Woodboard, 10x10, $400.JPG',
-    'Josephine, Kyriell Paris-Agafonov, Mixed Media on Woodboard, 10x10, $400.JPG',
-    'Called Before Dawn, Kyriell Paris-Agafonov, Mixed Media on Woodboard, 30x24, $1200.JPG',
+    'Fade Fast, Kyriell, Oil on Woodboard, 12x9, $500.JPG',
+    'Magpie & Peacock, Kyriell, Mixed Media on Woodboard, 12x18, $700.jpg',
+    'Reclaim, Kyriell, Oil on Woodboard, 6x6, $200.JPG',
+    'Still Burning, Kyriell, Mixed Media on Woodboard, 22x34, $2500.JPG',
+    'Xander, Kyriell, Mixed Media on Woodboard, 10x10, $400.JPG',
+    'Egg, Kyriell, Mixed Media on Woodboard, 10x10, $400.JPG',
+    'Edgar, Kyriell, Mixed Media on Woodboard, 10x10, $400.JPG',
+    'Josephine, Kyriell, Mixed Media on Woodboard, 10x10, $400.JPG',
+    'Called Before Dawn, Kyriell, Mixed Media on Woodboard, 30x24, $1200.JPG',
     '20240930_194634~2.JPG',
-    'Time to Fade Out, Kyriell Paris-Agafonov, Oil on Woodboard, 12x12, $500.JPG',
-    'Two Tailed Tale, Kyriell Paris-Agafonov, Mixed Media on Woodboard, 30x30, $2000.jpg',
-    'Bubblegum Breakup, Kyriell Paris-Agafonov, Mixed Media on Woodboard, 24x30, $1500.JPG',
+    'Time to Fade Out, Kyriell, Oil on Woodboard, 12x12, $500.JPG',
+    'Two Tailed Tale, Kyriell, Mixed Media on Woodboard, 30x30, $2000.jpg',
+    'Bubblegum Breakup, Kyriell, Mixed Media on Woodboard, 24x30, $1500.JPG',
     'studying-3.JPG',
     '20230825_182301~2.JPG',
     '20240521_140631~2.JPG',
     '20240521_141402~3.JPG',
     'aasquare.JPG',
-    'Take Two, Kyriell Paris-Agafonov, Mixed Media on Woodboard, 12x16, $60.JPG',
+    'Take Two, Kyriell, Mixed Media on Woodboard, 12x16, $60.JPG',
     'IMG_20220101_143431_640.jpg',
     'IMG_20220123_180418_458.jpg',
     'PXL_20210503_230954676~3.jpg',
@@ -67,9 +73,16 @@ function Paintings({ onNavigateHome }) {
   ]
 
   const galleryRef = useRef(null)
-  const [loadedImages, setLoadedImages] = useState(0)
+  const loadedCountRef = useRef(0)
   const [selectedImage, setSelectedImage] = useState(null)
   const positionImagesRef = useRef(null)
+
+  const safePage = page === 2 ? 2 : 1
+  const pageSize = Math.ceil(imageNames.length / PAGE_COUNT)
+  const pageStart = (safePage - 1) * pageSize
+  const visibleImages = imageNames.slice(pageStart, pageStart + pageSize)
+  const visibleCountRef = useRef(visibleImages.length)
+  visibleCountRef.current = visibleImages.length
 
   const positionImages = useCallback(() => {
     const gallery = galleryRef.current
@@ -158,41 +171,57 @@ function Paintings({ onNavigateHome }) {
   }, [])
 
   useEffect(() => {
-    // Initial positioning attempt after a short delay
-    if (galleryRef.current && positionImagesRef.current) {
-      const timer = setTimeout(() => {
-        positionImagesRef.current()
-      }, 300)
-      return () => clearTimeout(timer)
-    }
-  }, [positionImages])
+    loadedCountRef.current = 0
+    setSelectedImage(null)
+    if (galleryRef.current) galleryRef.current.style.height = ''
+    window.scrollTo(0, 0)
+    const timer = setTimeout(() => {
+      positionImagesRef.current?.()
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [safePage, positionImages])
 
   const handleImageLoad = () => {
-    setLoadedImages(prev => {
-      const newCount = prev + 1
-      if (positionImagesRef.current) {
-        setTimeout(() => {
-          positionImagesRef.current()
-        }, newCount === imageNames.length ? 200 : 50)
-      }
-      return newCount
-    })
+    loadedCountRef.current += 1
+    const newCount = loadedCountRef.current
+    if (positionImagesRef.current) {
+      setTimeout(() => {
+        positionImagesRef.current()
+      }, newCount >= visibleCountRef.current ? 200 : 50)
+    }
   }
+
+  const renderPager = () => (
+    <nav className="gallery-pager" aria-label="Paintings pages">
+      {[1, 2].map((n) => (
+        <button
+          key={n}
+          type="button"
+          className={`gallery-page-button ${safePage === n ? 'active' : ''}`}
+          aria-current={safePage === n ? 'page' : undefined}
+          onClick={() => onPageChange?.(n)}
+        >
+          {n}
+        </button>
+      ))}
+    </nav>
+  )
 
   return (
     <div className="Paintings">
       <AnimatedHeader className="paintings-title">Paintings</AnimatedHeader>
+      {renderPager()}
       <div ref={galleryRef} className="gallery">
-        {imageNames.length > 0 ? (
-          imageNames.map((imageName, index) => (
+        {visibleImages.length > 0 ? (
+          visibleImages.map((imageName, index) => (
             <div 
-              key={index} 
+              key={imageName} 
               className="gallery-item"
               onClick={() => setSelectedImage(paintingImageUrl(imageName))}
             >
               <img 
                 src={paintingThumbUrl(imageName)}
-                alt={`Artwork ${index + 1}`}
+                alt={`Artwork ${pageStart + index + 1}`}
                 loading="lazy"
                 onLoad={handleImageLoad}
                 onError={(e) => {
@@ -211,6 +240,7 @@ function Paintings({ onNavigateHome }) {
           </div>
         )}
       </div>
+      <div className="gallery-pager-end">{renderPager()}</div>
       {selectedImage && (
         <ImageModal
           imageSrc={selectedImage}
