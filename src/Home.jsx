@@ -5,14 +5,14 @@ import ImageModal from './ImageModal'
 function Home() {
   // Featured images to show on landing page (first few images)
   const featuredImages = [
+    'Ancestral_light.JPG',
     'channeling_love.JPG',
-    'acidum-fortuna.JPG',
-    'self-portrait.JPG',
+    'Coronary_bypass.JPG',
   ]
 
   const [animatedLetters, setAnimatedLetters] = useState([])
   const [selectedImage, setSelectedImage] = useState(null)
-  const name = 'Kyriell Paris-Agafonov'
+  const name = 'Kyriell'
   const letters = name.split('')
 
   useEffect(() => {

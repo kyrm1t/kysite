@@ -15,9 +15,17 @@ function pageFromPathname(pathname) {
   return 'home'
 }
 
-function pathnameForPage(page) {
+function pathnameForPage(page, paintingsPage = 1) {
   if (page === 'home') return '/'
+  if (page === 'paintings' && paintingsPage === 2) return '/paintings/2'
   return `/${page}`
+}
+
+function paintingsPageFromPathname(pathname) {
+  const trimmed = (pathname || '').replace(/\/+$/, '') || '/'
+  const parts = trimmed.slice(1).split('/')
+  if (parts[0] !== 'paintings') return 1
+  return parts[1] === '2' ? 2 : 1
 }
 
 function initialPageFromWindow() {
@@ -34,6 +42,9 @@ function initialPageFromWindow() {
 
 function App() {
   const [currentPage, setCurrentPage] = useState(initialPageFromWindow)
+  const [paintingsPage, setPaintingsPage] = useState(() =>
+    typeof window === 'undefined' ? 1 : paintingsPageFromPathname(window.location.pathname)
+  )
   const [shopBreadcrumb, setShopBreadcrumb] = useState(null)
   const [shopResetKey, setShopResetKey] = useState(0)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
@@ -44,7 +55,26 @@ function App() {
       u.pathname = '/shop'
       window.history.replaceState(window.history.state, '', u.pathname + u.search + u.hash)
     }
+    if (pageFromPathname(u.pathname) === 'paintings') {
+      const parts = u.pathname.replace(/\/+$/, '').slice(1).split('/')
+      if (parts[1] && parts[1] !== '2') {
+        window.history.replaceState({ page: 'paintings', paintingsPage: 1 }, '', '/paintings')
+        setPaintingsPage(1)
+      }
+    }
   }, [])
+
+  const goToPaintingsPage = useCallback((n) => {
+    const next = n === 2 ? 2 : 1
+    if (currentPage === 'paintings' && paintingsPage === next) return
+    window.history.pushState(
+      { page: 'paintings', paintingsPage: next },
+      '',
+      pathnameForPage('paintings', next)
+    )
+    setCurrentPage('paintings')
+    setPaintingsPage(next)
+  }, [currentPage, paintingsPage])
 
   const goToPage = useCallback((page) => {
     if (page === 'shop' && currentPage === 'shop') {
@@ -52,13 +82,18 @@ function App() {
       window.history.replaceState({ page: 'shop' }, '', '/shop')
       return
     }
+    if (page === 'paintings') {
+      goToPaintingsPage(1)
+      return
+    }
     window.history.pushState({ page }, '', pathnameForPage(page))
     setCurrentPage(page)
-  }, [currentPage])
+  }, [currentPage, goToPaintingsPage])
 
   useEffect(() => {
     const onPop = () => {
       setCurrentPage(pageFromPathname(window.location.pathname))
+      setPaintingsPage(paintingsPageFromPathname(window.location.pathname))
     }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
@@ -97,7 +132,12 @@ function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'paintings':
-        return <Paintings onNavigateHome={() => goToPage('home')} />
+        return (
+          <Paintings
+            page={paintingsPage}
+            onPageChange={goToPaintingsPage}
+          />
+        )
       case 'shop':
         return (
           <Shop
@@ -163,7 +203,7 @@ function App() {
             onClick={() => goToPage('home')}
             aria-label="Home"
           >
-            <span className="home-button-text">Kyriell Paris-Agafonov</span>
+            <span className="home-button-text">Kyriell</span>
             <svg className="home-button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               <polyline points="9 22 9 12 15 12 15 22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
